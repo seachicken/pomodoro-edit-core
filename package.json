@@ -1,0 +1,32 @@
+{
+  "name": "pomodoro-edit-core",
+  "version": "0.1.0",
+  "description": "Pomodoro timer operated by text",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "test": "jest",
+    "test-watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seachicken/pomodoro-edit-core.git"
+  },
+  "keywords": [
+    "pomodoro",
+    "timer"
+  ],
+  "author": "Seito Tanaka",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seachicken/pomodoro-edit-core/issues"
+  },
+  "homepage": "https://github.com/seachicken/pomodoro-edit-core#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.7.5",
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "babel-jest": "^24.9.0",
+    "jest": "^24.9.0"
+  }
+}
