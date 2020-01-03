@@ -2,11 +2,13 @@ export default class Core {
   constructor() {
     this._previousPtext;
     this._interval;
+    this._isPaused;
   }
 
   findAndCountPomodoroText(text, callbacks) {
     const ptext = this._findPomodoroText(text);
     if (this._previousPtext
+        && ptext.operator === this._previousPtext.operator
         && ptext.time === this._previousPtext.time
         && ptext.content === this._previousPtext.content) {
       return;
@@ -14,6 +16,14 @@ export default class Core {
     this._previousPtext = ptext;
     
     if (ptext) {
+      if (ptext.operator === '-') {
+        this._isPaused = true;
+        return;
+      } else if (this._isPaused) {
+        this._isPaused = false;
+        return;
+      }
+
       this._startTimer(ptext.time, callbacks.interval)
         .then(() => {
           if (callbacks.hasOwnProperty('finish')) {
@@ -22,13 +32,13 @@ export default class Core {
         });
     } else {
       this._stopTimer();
-      callbacks.stop();
+      callbacks.stop && callbacks.stop();
     }
   }
   
   _findPomodoroText(text) {
-    const found = text.match(/(?:^|^ *- |^ *- \[ \] )\[p([0-9].*)\] *(.+)/m);
-    const ptext = found == null ? false : { time: found[1], content: found[2] };
+    const found = text.match(/(?:^|^ *- |^ *- \[ \] )\[(-|)p([0-9].*)\] *(.+)/m);
+    const ptext = found == null ? false : { operator: found[1], time: parseInt(found[2]), content: found[3] };
     return ptext;
   }
   
@@ -42,6 +52,8 @@ export default class Core {
 
     return new Promise(resolve => {
       this._interval = setInterval(() => {
+        if (this._isPaused) return;
+
         callback(--timeSec);
 
         if (timeSec <= 0) {
@@ -57,5 +69,6 @@ export default class Core {
   _stopTimer() {
     clearInterval(this._interval);
     this._interval = null;
+    this._isPaused = false;
   }
 }
