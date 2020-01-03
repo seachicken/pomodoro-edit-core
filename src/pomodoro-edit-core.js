@@ -25,11 +25,7 @@ export default class Core {
       }
 
       this._startTimer(ptext.time, callbacks.interval)
-        .then(() => {
-          if (callbacks.hasOwnProperty('finish')) {
-            callbacks.finish(ptext);
-          }
-        });
+        .then(() => callbacks.finish && callbacks.finish(ptext));
     } else {
       this._stopTimer();
       callbacks.stop && callbacks.stop();
