@@ -24,28 +24,31 @@ export default class Core {
         return;
       }
 
-      this._startTimer(ptext.time, callbacks.interval)
+      if (this._interval) {
+        clearInterval(this._interval);
+        this._interval = null;
+        callbacks.cancel && callbacks.cancel();
+      }
+    
+      callbacks.start && callbacks.start();
+      function intervalCallback(remaining) {
+        callbacks.interval && callbacks.interval(remaining, ptext);
+      }
+      this._startTimer(ptext.time, intervalCallback)
         .then(() => callbacks.finish && callbacks.finish(ptext));
     } else {
-      this._stopTimer();
-      callbacks.stop && callbacks.stop();
+      this._clearTimer();
+      callbacks.cancel && callbacks.cancel();
     }
   }
   
   _findPomodoroText(text) {
     const found = text.match(/(?:^|^ *- |^ *- \[ \] )\[(-|)p([0-9].*)\] *(.+)/m);
-    const ptext = found == null ? false : { operator: found[1], time: parseInt(found[2]), content: found[3] };
+    const ptext = found == null ? false : { operator: found[1], time: parseInt(found[2]) * 60, content: found[3] };
     return ptext;
   }
   
-  _startTimer(timeText, callback = () => {}) {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-    
-    let timeSec = parseInt(timeText) * 60;
-
+  _startTimer(timeSec, callback) {
     return new Promise(resolve => {
       this._interval = setInterval(() => {
         if (this._isPaused) return;
@@ -62,7 +65,7 @@ export default class Core {
     });
   }
   
-  _stopTimer() {
+  _clearTimer() {
     clearInterval(this._interval);
     this._interval = null;
     this._isPaused = false;
