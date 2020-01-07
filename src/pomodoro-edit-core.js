@@ -1,21 +1,25 @@
 export default class Core {
   constructor() {
-    this._previousPtext;
+    this._runningPtext;
+    this._runningFilePath;
     this._interval;
     this._isPaused;
   }
 
-  findAndCountPomodoroText(text, callbacks) {
+  findAndCountPomodoroText(text, filePath, callbacks) {
     const ptext = this._findPomodoroText(text);
-    if (this._previousPtext
-        && ptext.operator === this._previousPtext.operator
-        && ptext.time === this._previousPtext.time
-        && ptext.content === this._previousPtext.content) {
+    if (this._runningPtext
+        && ptext.operator === this._runningPtext.operator
+        && ptext.time === this._runningPtext.time
+        && ptext.content === this._runningPtext.content
+        && this._runningFilePath === filePath) {
       return;
     }
-    this._previousPtext = ptext;
     
     if (ptext) {
+      this._runningPtext = ptext;
+      this._runningFilePath = filePath;
+
       if (ptext.operator === '-') {
         this._isPaused = true;
         return;
@@ -29,7 +33,7 @@ export default class Core {
         this._interval = null;
         callbacks.cancel && callbacks.cancel();
       }
-    
+
       callbacks.start && callbacks.start();
       function intervalCallback(remaining) {
         callbacks.interval && callbacks.interval(remaining, ptext);
@@ -37,8 +41,10 @@ export default class Core {
       this._startTimer(ptext.time, intervalCallback)
         .then(() => callbacks.finish && callbacks.finish(ptext));
     } else {
-      this._clearTimer();
-      callbacks.cancel && callbacks.cancel();
+      if (!this._runningFilePath || filePath === this._runningFilePath) {
+        this._clearTimer();
+        callbacks.cancel && callbacks.cancel();
+      }
     }
   }
   
