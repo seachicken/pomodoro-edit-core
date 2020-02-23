@@ -190,6 +190,16 @@ describe('pomodoro-edit-core', () => {
           cancel: () => done()
         });
       });
+
+      test('can count the timer when unpausing PomodoroText that has been paused from the begining', done => {
+        core.findAndCountPomodoroText('- [-p1] xxx', '', {
+          interval: () => done()
+        });
+
+        core.findAndCountPomodoroText('- [p1] xxx', '');
+
+        jest.advanceTimersByTime(1 * 1000);
+      });
     });
 
     describe('callback cancel', () => {

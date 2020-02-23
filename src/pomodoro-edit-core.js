@@ -17,6 +17,25 @@ export default class Core {
     }
     
     if (ptext) {
+      if (!this._runningPtext
+          || ptext.time !== this._runningPtext.time
+          || ptext.content !== this._runningPtext.content
+          || this._runningFilePath !== filePath) {
+
+        if (this._interval) {
+          clearInterval(this._interval);
+          this._interval = null;
+          callbacks.cancel && callbacks.cancel();
+        }
+
+        callbacks.start && callbacks.start();
+        function intervalCallback(remaining) {
+          callbacks.interval && callbacks.interval(remaining, ptext);
+        }
+        this._startTimer(ptext.time, intervalCallback)
+          .then(() => callbacks.finish && callbacks.finish(ptext));
+      }
+
       this._runningPtext = ptext;
       this._runningFilePath = filePath;
 
@@ -27,19 +46,6 @@ export default class Core {
         this._isPaused = false;
         return;
       }
-
-      if (this._interval) {
-        clearInterval(this._interval);
-        this._interval = null;
-        callbacks.cancel && callbacks.cancel();
-      }
-
-      callbacks.start && callbacks.start();
-      function intervalCallback(remaining) {
-        callbacks.interval && callbacks.interval(remaining, ptext);
-      }
-      this._startTimer(ptext.time, intervalCallback)
-        .then(() => callbacks.finish && callbacks.finish(ptext));
     } else {
       this._runningPtext = null;
 
