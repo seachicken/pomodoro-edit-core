@@ -6,7 +6,7 @@ export default class Core {
     this._isPaused;
   }
 
-  findAndCountPomodoroText(text, filePath, callbacks) {
+  findAndCountPomodoroText(text, filePath, callbacks = {}) {
     const ptext = this._findPomodoroText(text);
     if (this._runningPtext
         && ptext.operator === this._runningPtext.operator
@@ -41,6 +41,8 @@ export default class Core {
       this._startTimer(ptext.time, intervalCallback)
         .then(() => callbacks.finish && callbacks.finish(ptext));
     } else {
+      this._runningPtext = null;
+
       if (!this._runningFilePath || filePath === this._runningFilePath) {
         this._clearTimer();
         callbacks.cancel && callbacks.cancel();

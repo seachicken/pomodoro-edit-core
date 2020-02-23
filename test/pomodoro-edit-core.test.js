@@ -15,6 +15,16 @@ describe('pomodoro-edit-core', () => {
           start: () => done()
         });
       });
+
+      test('can call a start callback when uncomment after comment out', done => {
+        core.findAndCountPomodoroText('- [p1] xxx', '');
+
+        core.findAndCountPomodoroText('<!-- - [p1] xxx -->', '');
+
+        core.findAndCountPomodoroText('- [p1] xxx', '', {
+          start: () => done()
+        });
+      });
     });
 
     describe('callback finish', () => {
