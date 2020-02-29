@@ -57,7 +57,7 @@ export default class Core {
   }
   
   _findPomodoroText(text) {
-    const found = text.match(/(?:^|^ *- |^ *- \[ \] )\[(-|)p([0-9].*)\] *(.+)/m);
+    const found = text.match(/(?:^|^ *(?:-|\*) |^ *(?:-|\*) \[ \] )\[(-|)p([0-9].*)\] *(.+)/m);
     const ptext = found == null ? false : { operator: found[1], time: parseInt(found[2]) * 60, content: found[3] };
     return ptext;
   }

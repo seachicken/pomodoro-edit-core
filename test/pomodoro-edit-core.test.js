@@ -10,10 +10,72 @@ describe('pomodoro-edit-core', () => {
   describe('findAndCountPomodoroText', () => {
 
     describe('callback start', () => {
-      test('can call a start callback when PomodoroText is found', done => {
+      test('can find "[p1] xxx"', done => {
         core.findAndCountPomodoroText('[p1] xxx', '', {
           start: actual => {
-            expect(actual.time).toBe(1 * 60);
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+      
+      test('can find "- [p1] xxx"', done => {
+        core.findAndCountPomodoroText('- [p1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+      
+      test('can find "  - [p1] xxx"', done => {
+        core.findAndCountPomodoroText('  - [p1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+      
+      test('can find "* [p1] xxx"', done => {
+        core.findAndCountPomodoroText('* [p1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+      
+      test('can find "- [ ] [p1] xxx"', done => {
+        core.findAndCountPomodoroText('- [ ] [p1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+      
+      test('can find "  - [ ] [p1] xxx"', done => {
+        core.findAndCountPomodoroText('  - [ ] [p1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+
+      test('can find "* [ ] [p1] xxx"', done => {
+        core.findAndCountPomodoroText('* [ ] [p1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+      
+      test('ignores when spaces before content', done => {
+        core.findAndCountPomodoroText('[p1]  xxx', '', {
+          start: actual => {
             expect(actual.content).toBe('xxx');
             done();
           }
@@ -34,72 +96,6 @@ describe('pomodoro-edit-core', () => {
     describe('callback finish', () => {
       beforeEach(() => {
         jest.useFakeTimers();
-      });
-      
-      test('can find "[p1] xxx"', done => {
-        core.findAndCountPomodoroText('[p1] xxx', '', {
-          finish: actual => {
-            expect(actual.time).toBe(1 * 60);
-            expect(actual.content).toBe('xxx');
-            done();
-          }
-        });
-        jest.advanceTimersByTime(60 * 1000);
-      });
-      
-      test('can find "- [p1] xxx"', done => {
-        core.findAndCountPomodoroText('- [p1] xxx', '', {
-          finish: actual => {
-            expect(actual.time).toBe(1 * 60);
-            expect(actual.content).toBe('xxx');
-            done();
-          }
-        });
-        jest.advanceTimersByTime(60 * 1000);
-      });
-      
-      test('can find "  - [p1] xxx"', done => {
-        core.findAndCountPomodoroText('  - [p1] xxx', '', {
-          finish: actual => {
-            expect(actual.time).toBe(1 * 60);
-            expect(actual.content).toBe('xxx');
-            done();
-          }
-        });
-        jest.advanceTimersByTime(60 * 1000);
-      });
-      
-      test('can find "- [ ] [p1] xxx"', done => {
-        core.findAndCountPomodoroText('- [ ] [p1] xxx', '', {
-          finish: actual => {
-            expect(actual.time).toBe(1 * 60);
-            expect(actual.content).toBe('xxx');
-            done();
-          }
-        });
-        jest.advanceTimersByTime(60 * 1000);
-      });
-      
-      test('can find "  - [ ] [p1] xxx"', done => {
-        core.findAndCountPomodoroText('  - [ ] [p1] xxx', '', {
-          finish: actual => {
-            expect(actual.time).toBe(1 * 60);
-            expect(actual.content).toBe('xxx');
-            done();
-          }
-        });
-        jest.advanceTimersByTime(60 * 1000);
-      });
-      
-      test('ignores when spaces before content', done => {
-        core.findAndCountPomodoroText('[p1]  xxx', '', {
-          finish: actual => {
-            expect(actual.time).toBe(1 * 60);
-            expect(actual.content).toBe('xxx');
-            done();
-          }
-        });
-        jest.advanceTimersByTime(60 * 1000);
       });
       
       test('does not reset timer when PomodoroText is the same as last time', done => {
