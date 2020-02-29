@@ -28,7 +28,7 @@ export default class Core {
           callbacks.cancel && callbacks.cancel();
         }
 
-        callbacks.start && callbacks.start();
+        callbacks.start && callbacks.start(ptext);
         function intervalCallback(remaining) {
           callbacks.interval && callbacks.interval(remaining, ptext);
         }

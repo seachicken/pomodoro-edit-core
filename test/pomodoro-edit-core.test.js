@@ -12,7 +12,11 @@ describe('pomodoro-edit-core', () => {
     describe('callback start', () => {
       test('can call a start callback when PomodoroText is found', done => {
         core.findAndCountPomodoroText('[p1] xxx', '', {
-          start: () => done()
+          start: actual => {
+            expect(actual.time).toBe(1 * 60);
+            expect(actual.content).toBe('xxx');
+            done();
+          }
         });
       });
 
