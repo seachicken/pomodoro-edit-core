@@ -260,4 +260,26 @@ describe('pomodoro-edit-core', () => {
       });
     });
   });
+
+  describe('retryLatest', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    test('should called start twice', done => {
+      let start = jest.fn();
+
+      core.findAndCountPomodoroText('[p1] xxx', '', {
+        start: start,
+        finish: () => {
+          expect(start.mock.calls.length).toBe(2);
+          done();
+        }
+      });
+
+      core.retryLatest();
+
+      jest.advanceTimersByTime(60 * 1000);
+    });
+  });
 });
