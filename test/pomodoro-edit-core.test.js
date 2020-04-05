@@ -261,6 +261,37 @@ describe('pomodoro-edit-core', () => {
     });
   });
 
+  describe('stopTimer', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    test('should called cancel', done => {
+      core.findAndCountPomodoroText('[p1] xxx', '', {
+        cancel: () => done()
+      });
+
+      core.stopTimer();
+    });
+
+    test('should reset timer', done => {
+      core.findAndCountPomodoroText('[p1] xxx', '');
+      jest.advanceTimersByTime(10 * 1000);
+
+      core.stopTimer();
+
+      let interval = jest.fn();
+      core.findAndCountPomodoroText('[p1] xxx', '', {
+        interval: interval,
+        finish: () => {
+          expect(interval.mock.calls.length).toBe(60);
+          done();
+        }
+      });
+      jest.advanceTimersByTime(60 * 1000);
+    });
+  });
+
   describe('retryLatest', () => {
     beforeEach(() => {
       jest.useFakeTimers();
