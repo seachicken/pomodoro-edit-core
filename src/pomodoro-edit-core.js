@@ -106,5 +106,9 @@ export default class Core {
     }
     this._startTimer(this._runningPtext.time, intervalCallback)
       .then(() => this._callbacks.finish && this._callbacks.finish(this._runningPtext));
+
+    if (this._runningPtext.operator === '-') {
+      this._isPaused = true;
+    }
   }
 }
