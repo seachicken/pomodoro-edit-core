@@ -81,6 +81,24 @@ describe('pomodoro-edit-core', () => {
           }
         });
       });
+      
+      test('should return id', done => {
+        core.findAndCountPomodoroText('[p1] xxx', 'a', {
+          start: ptext => {
+            expect(ptext.id).toBe('a');
+            done();
+          }
+        });
+      });
+      
+      test('should return line number', done => {
+        core.findAndCountPomodoroText('a\n[p1] xxx', '', {
+          start: ptext => {
+            expect(ptext.line).toBe(1);
+            done();
+          }
+        });
+      });
 
       test('can call a start callback when uncomment after comment out', done => {
         core.findAndCountPomodoroText('- [p1] xxx', '');

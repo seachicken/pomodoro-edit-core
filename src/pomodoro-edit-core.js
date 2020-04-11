@@ -1,20 +1,20 @@
 export default class Core {
   constructor() {
     this._runningPtext;
-    this._runningFilePath;
+    this._runningFileId;
     this._callbacks;
     this._interval;
     this._isPaused;
   }
 
-  findAndCountPomodoroText(text, filePath, callbacks = {}) {
+  findAndCountPomodoroText(text, fileId, callbacks = {}) {
     this._callbacks = callbacks;
-    const ptext = this._findPomodoroText(text);
+    const ptext = this._findPomodoroText(text, fileId);
     if (this._runningPtext
         && ptext.operator === this._runningPtext.operator
         && ptext.time === this._runningPtext.time
         && ptext.content === this._runningPtext.content
-        && this._runningFilePath === filePath) {
+        && this._runningFileId === fileId) {
       return;
     }
     
@@ -22,7 +22,7 @@ export default class Core {
       if (!this._runningPtext
           || ptext.time !== this._runningPtext.time
           || ptext.content !== this._runningPtext.content
-          || this._runningFilePath !== filePath) {
+          || this._runningFileId !== fileId) {
 
         if (this._interval) {
           clearInterval(this._interval);
@@ -39,7 +39,7 @@ export default class Core {
       }
 
       this._runningPtext = ptext;
-      this._runningFilePath = filePath;
+      this._runningFileId = fileId;
 
       if (ptext.operator === '-') {
         this._isPaused = true;
@@ -51,17 +51,25 @@ export default class Core {
     } else {
       this._runningPtext = null;
 
-      if (!this._runningFilePath || filePath === this._runningFilePath) {
+      if (!this._runningFileId || fileId === this._runningFileId) {
         this._clearTimer();
         callbacks.cancel && callbacks.cancel();
       }
     }
   }
 
-  _findPomodoroText(text) {
-    const found = text.match(/(?:^|^ *(?:-|\*) |^ *(?:-|\*) \[ \] )\[(-|)p([0-9].*)\] *(.+)/m);
-    const ptext = found == null ? false : { operator: found[1], time: parseInt(found[2]) * 60, content: found[3] };
-    return ptext;
+  _findPomodoroText(text, id) {
+    const lines = text.split('\n');
+    let lineNumber = 0;
+    let found;
+    for (const line of lines) {
+      found = line.match(/(?:^|^ *(?:-|\*) |^ *(?:-|\*) \[ \] )\[(-|)p([0-9].*)\] *(.+)/);
+      if (found != null) {
+        return { id, line: lineNumber, operator: found[1], time: parseInt(found[2]) * 60, content: found[3] };
+      }
+      lineNumber++;
+    }
+    return false;
   }
   
   _startTimer(timeSec, callback) {
