@@ -91,10 +91,11 @@ describe('pomodoro-edit-core', () => {
         });
       });
       
-      test('should return line number', done => {
-        core.findAndCountPomodoroText('a\n[p1] xxx', '', {
+      test('should return number of lines and chracters', done => {
+        core.findAndCountPomodoroText('a\n- [ ] [p1] xxx', '', {
           start: ptext => {
             expect(ptext.line).toBe(1);
+            expect(ptext.ch).toBe(3);
             done();
           }
         });
