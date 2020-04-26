@@ -81,6 +81,16 @@ describe('pomodoro-edit-core', () => {
           }
         });
       });
+
+      test('can not start the timer when time is zero', () => {
+        const start = jest.fn();
+
+        core.findAndCountPomodoroText('- [p0] xxx', '', {
+          start: start
+        });
+
+        expect(start.mock.calls.length).toBe(0);
+      });
       
       test('should return id', done => {
         core.findAndCountPomodoroText('[p1] xxx', 'a', {
@@ -119,7 +129,7 @@ describe('pomodoro-edit-core', () => {
       
       test('does not reset timer when PomodoroText is the same as last time', done => {
         core.findAndCountPomodoroText('[p1] xxx', '', {
-          finish: actual => done()
+          finish: () => done()
         });
           
         jest.advanceTimersByTime(30 * 1000);

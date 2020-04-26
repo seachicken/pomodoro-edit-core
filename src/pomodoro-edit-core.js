@@ -63,8 +63,10 @@ export default class Core {
     let lineNumber = 0;
     let found;
     for (const line of lines) {
-      found = line.match(/(?:^|^ *(?:-|\*) |^ *(?:-|\*) \[ \] )\[(-|)p([0-9].*)\] *(.+)/);
+      found = line.match(/(?:^|^ *(?:-|\*) |^ *(?:-|\*) \[ \] )\[(-|)p([0-9]+)\] *(.+)/);
       if (found) {
+        if (parseInt(found[2]) <= 0) continue;
+
         const checkboxRegex = /^ *(?:-|\*) \[/g;
         const chNumber = checkboxRegex.test(line) ? checkboxRegex.lastIndex : 0;
         return { id, line: lineNumber, ch: chNumber, operator: found[1], time: parseInt(found[2]) * 60, content: found[3] };
