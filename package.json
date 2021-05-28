@@ -1,6 +1,6 @@
 {
   "name": "pomodoro-edit-core",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "Pomodoro timer operated by text",
   "main": "index.js",
   "scripts": {
