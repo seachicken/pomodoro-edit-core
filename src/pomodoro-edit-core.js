@@ -1,11 +1,21 @@
+import { parse } from './syntax-parser';
+
+const LONGEST_LOOP = 99;
+
 export default class Core {
+
   constructor() {
     this._runningPtext;
     this._runningFileId;
     this._callbacks;
     this._interval;
-    this._remaining;
     this._isPaused;
+    this._timerCallbacks = {
+      interval: (remainingSec, durationSec, stepNos) => {
+        this._callbacks.interval && this._callbacks.interval(remainingSec, durationSec, stepNos, this._runningPtext);
+      },
+      step: () => this._callbacks.step && this._callbacks.step(this._runningPtext)
+    };
   }
 
   findAndStartTimer(text, fileId, callbacks = {}) {
@@ -13,45 +23,27 @@ export default class Core {
     const ptext = this._findPomodoroText(text, fileId);
     if (this._runningPtext
         && ptext.operator === this._runningPtext.operator
-        && ptext.time === this._runningPtext.time
-        && ptext.extraTime === this._runningPtext.extraTime
+        && ptext.syntax === this._runningPtext.syntax
         && ptext.content === this._runningPtext.content
-        && this._runningFileId === fileId) {
+        && fileId === this._runningFileId) {
       return;
     }
     
     if (ptext) {
-      const intervalCallback = remaining => {
-        this._remaining = remaining;
-        callbacks.interval && callbacks.interval(remaining, ptext);
-      }
-
       if (!this._runningPtext
-          || ptext.time !== this._runningPtext.time
           || ptext.content !== this._runningPtext.content
-          || this._runningFileId !== fileId) {
+          || ptext.syntax !== this._runningPtext.syntax
+          || fileId !== this._runningFileId) {
 
         if (this._interval) {
           clearInterval(this._interval);
           this._interval = null;
           callbacks.cancel && callbacks.cancel();
         }
-        const time = ptext.time + (ptext.extraTime || 0);
-        this._remaining = time;
 
         callbacks.start && callbacks.start(ptext);
-        this._startTimer(time, intervalCallback)
+        this._startTimer(ptext.ast, this._timerCallbacks)
           .then(() => callbacks.finish && callbacks.finish(ptext));
-      } else if (this._runningPtext && ptext.extraTime !== this._runningPtext.extraTime) {
-        clearInterval(this._interval);
-        const time = this._remaining + (ptext.extraTime || 0) - (this._runningPtext.extraTime || 0);
-        if (time > 0) {
-          this._startTimer(time, intervalCallback)
-            .then(() => callbacks.finish && callbacks.finish(ptext));
-        } else {
-          intervalCallback(0);
-          callbacks.finish && callbacks.finish(ptext);
-        }
       }
 
       this._runningPtext = ptext;
@@ -59,15 +51,12 @@ export default class Core {
 
       if (ptext.operator === '-') {
         this._isPaused = true;
-        return;
       } else if (this._isPaused) {
         this._isPaused = false;
-        return;
       }
     } else {
-      this._runningPtext = null;
-
       if (!this._runningFileId || fileId === this._runningFileId) {
+        this._runningPtext = null;
         this._clearTimer();
         callbacks.cancel && callbacks.cancel();
       }
@@ -78,36 +67,91 @@ export default class Core {
     const lines = text.split('\n');
     let lineNumber = 0;
     for (const line of lines) {
-      const found = line.match(/(?:^|^ *(?:-|\*) |^ *(?:-|\*) \[ \] )\[(-|)p([0-9]+)(\+[0-9]+|)\] *(.+)/);
+      const found = line.match(/^ *(?:- |\* |)(?:\[ \] |)\[(-|)([p0-9() ]+)\] *(.+)/);
       if (found) {
-        if (parseInt(found[2]) <= 0) continue;
-
+        const syntax = found[2];
+        if (syntax.trim().length === 0) {
+          continue;
+        }
+        const ast = parse(syntax);
+        if (ast.length === 0) {
+          return false;
+        }
+        const operator = found[1];
+        const content = found[3];
         const checkboxRegex = /^ *(?:-|\*) \[/g;
-        const checkboxCh = checkboxRegex.test(line) ? checkboxRegex.lastIndex : 0;
-        const extraTimeRegex = /\[(?:-|)p[0-9]+/g;
-        const extraTimeCh = extraTimeRegex.test(line) ? extraTimeRegex.lastIndex : 0;
-        const extraTime = found[3] ? parseInt(found[3]) * 60 : 0;
-        return {
-          id,line: lineNumber, checkboxCh, extraTimeCh,
-          operator: found[1], time: parseInt(found[2]) * 60, extraTime, content: found[4]
-        };
+        const checkboxOffset = checkboxRegex.test(line) ? checkboxRegex.lastIndex : 0;
+        return { id, line: lineNumber, checkboxOffset, operator, syntax, ast, content };
       }
       lineNumber++;
     }
     return false;
   }
-  
-  _startTimer(timeSec, callback) {
+
+  _startTimer(ast, callbacks) {
+    const results = [];
+    this._convertToPromises(ast, callbacks, results);
+    return results
+      .reduce((p, n, i) => p.then(() => {
+        if (0 < i && i < results.length) {
+          callbacks.step();
+        }
+        return n();
+      }), Promise.resolve());
+  }
+
+  _convertToPromises(ast, callback, results, stepNos = []) {
+    if (ast.length === 0) {
+      return;
+    }
+
+    ast = JSON.parse(JSON.stringify(ast));
+    const timer = ast.shift();
+
+    if (timer.childNodes) {
+      stepNos.push(1);
+      if (timer.loop === 0) {
+        timer.loop = LONGEST_LOOP;
+      }
+      for (let i = timer.loop; i > 0; i--) {
+        stepNos[stepNos.length - 1] = timer.loop - i + 1;
+        this._convertToPromises(timer.childNodes, callback, results, stepNos);
+      }
+      stepNos.pop();
+    }
+
+    if (timer.timeSec) {
+      const displayStepNos = this._convertToDisplayStepNos(stepNos);
+      results.push(() => this._createTimer(timer.timeSec, callback, displayStepNos));
+    }
+
+    this._convertToPromises(ast, callback, results, stepNos);
+  }
+
+  _convertToDisplayStepNos(stepNos) {
+    let result = '';
+    if (stepNos.length > 0) {
+      for (const [i, stepNo] of stepNos.entries()) {
+        result += stepNo;
+        if (i + 1 < stepNos.length) {
+          result += '-';
+        }
+      }
+    }
+    return result;
+  }
+
+  _createTimer(timeSec, callbacks, stepNos) {
     return new Promise(resolve => {
+      let remainingSec = timeSec;
       this._interval = setInterval(() => {
         if (this._isPaused) return;
 
-        callback(--timeSec);
+        callbacks.interval(--remainingSec, timeSec, stepNos);
 
-        if (timeSec <= 0) {
+        if (remainingSec <= 0) {
           clearInterval(this._interval);
           this._interval = null;
-          
           resolve();
         }
       }, 1000);
@@ -117,7 +161,6 @@ export default class Core {
   _clearTimer() {
     clearInterval(this._interval);
     this._interval = null;
-    this._remaining = 0;
     this._isPaused = false;
   }
   
@@ -135,13 +178,7 @@ export default class Core {
     this._clearTimer();
 
     this._callbacks.start && this._callbacks.start(this._runningPtext);
-    const intervalCallback = remaining => {
-      this._remaining = remaining;
-      this._callbacks.interval && this._callbacks.interval(remaining, this._runningPtext);
-    }
-    const time = this._runningPtext.time + (this._runningPtext.extraTime || 0);
-    this._remaining = time;
-    this._startTimer(time, intervalCallback)
+    this._startTimer(this._runningPtext.ast, this._timerCallbacks)
       .then(() => this._callbacks.finish && this._callbacks.finish(this._runningPtext));
 
     if (this._runningPtext.operator === '-') {
