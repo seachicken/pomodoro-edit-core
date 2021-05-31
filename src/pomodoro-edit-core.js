@@ -26,6 +26,7 @@ export default class Core {
         && ptext.syntax === this._runningPtext.syntax
         && ptext.content === this._runningPtext.content
         && fileId === this._runningFileId) {
+      this._runningPtext = ptext;
       return;
     }
     
