@@ -1,3 +1,4 @@
+import * as WebSocket from 'ws';
 import { parse } from './syntax-parser';
 
 const LONGEST_LOOP = 99;
@@ -13,9 +14,32 @@ export default class Core {
     this._timerCallbacks = {
       interval: (remainingSec, durationSec, stepNos) => {
         this._callbacks.interval && this._callbacks.interval(remainingSec, durationSec, stepNos, this._runningPtext);
+
+        if (this.runningServer()) {
+          const body = {
+            type: 'interval',
+            remainingSec,
+            durationSec,
+            stepNos,
+            content: this._runningPtext.content
+          };
+          this._bloadcast(JSON.stringify(body));
+        }
       },
-      step: () => this._callbacks.step && this._callbacks.step(this._runningPtext)
+      step: () => {
+        this._callbacks.step && this._callbacks.step(this._runningPtext)
+
+        if (this.runningServer()) {
+          const body = {
+            type: 'step',
+            content: this._runningPtext.content
+          };
+          this._bloadcast(JSON.stringify(body));
+        }
+      }
     };
+    this._wss;
+    this._socket;
   }
 
   findAndStartTimer(text, fileId, callbacks = {}) {
@@ -44,7 +68,7 @@ export default class Core {
 
         callbacks.start && callbacks.start(ptext);
         this._startTimer(ptext.ast, this._timerCallbacks)
-          .then(() => callbacks.finish && callbacks.finish(ptext));
+          .then(() => this._finish(ptext, callbacks));
       }
 
       this._runningPtext = ptext;
@@ -61,6 +85,18 @@ export default class Core {
         this._clearTimer();
         callbacks.cancel && callbacks.cancel();
       }
+    }
+  }
+
+  _finish(ptext, callbacks) {
+    callbacks.finish && callbacks.finish(ptext)
+
+    if (this.runningServer()) {
+      const body = {
+        type: 'finish',
+        content: ptext.content
+      };
+      this._bloadcast(JSON.stringify(body));
     }
   }
 
@@ -180,10 +216,30 @@ export default class Core {
 
     this._callbacks.start && this._callbacks.start(this._runningPtext);
     this._startTimer(this._runningPtext.ast, this._timerCallbacks)
-      .then(() => this._callbacks.finish && this._callbacks.finish(this._runningPtext));
+      .then(() => this._finish(this._runningPtext, this._callbacks));
 
     if (this._runningPtext.operator === '-') {
       this._isPaused = true;
     }
+  }
+
+  runServer(port) {
+    this._wss = new WebSocket.Server({ port: port });
+    this._wss.on('connection', ws => this._socket = ws);
+  }
+
+  closeServer() {
+    this._wss.close();
+  }
+
+  runningServer() {
+    return this._socket && this._socket.readyState === WebSocket.OPEN;
+  }
+
+  _bloadcast(msg) {
+    this._wss.clients.forEach(client => {
+      if (client.readyState !== WebSocket.OPEN) return;
+      client.send(msg);
+    });
   }
 }
