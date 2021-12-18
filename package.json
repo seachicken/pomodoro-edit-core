@@ -24,11 +24,11 @@
   },
   "homepage": "https://github.com/seachicken/pomodoro-edit-core#readme",
   "devDependencies": {
-    "@babel/cli": "^7.7.5",
-    "@babel/core": "^7.7.5",
-    "@babel/preset-env": "^7.7.6",
+    "@babel/cli": "^7.16.0",
+    "@babel/core": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
     "babel-jest": "^24.9.0",
-    "jest": "^24.9.0",
+    "jest": "^27.4.5",
     "sinon": "^10.0.0"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import Core from '../src/pomodoro-edit-core';
+import Core, { getReplacementRange } from '../src/pomodoro-edit-core';
 import FakeTimers from "@sinonjs/fake-timers";
 
 describe('pomodoro-edit-core', () => {
@@ -347,6 +347,29 @@ describe('pomodoro-edit-core', () => {
             });
           })
         .then(() => clock.tickAsync(60 * 1000))
+    });
+  });
+});
+
+describe('getReplacementRange', () => {
+
+  test('get a replacement range of autocomplete when matched candidates', () => {
+    const actual = getReplacementRange('- [ ]', { line: 0, ch: 4 }, '-');
+
+    expect(actual).toEqual({
+      found: true,
+      start: { line: 0, ch: 0 },
+      end: { line: 0, ch: 4 }
+    });
+  });
+
+  test('get a replacement range of autocomplete when does not match candidates', () => {
+    const actual = getReplacementRange('- ( )', { line: 0, ch: 4 }, '-');
+
+    expect(actual).toEqual({
+      found: false,
+      start: { line: 0, ch: 0 },
+      end: { line: 0, ch: 0 }
     });
   });
 });

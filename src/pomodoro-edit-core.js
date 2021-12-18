@@ -243,3 +243,24 @@ export default class Core {
     });
   }
 }
+
+export function getReplacementRange(lineText, cursorPos, bullet) {
+  const candidates = [`${bullet} [ ] `, `${bullet} [] `];
+
+  const spaces = lineText.match(/^( *)/);
+  const startCh = spaces ? spaces[1].length : 0;
+  const trimmedText = lineText.substring(startCh, cursorPos.ch);
+  const found = candidates.some(c => c.indexOf(trimmedText) === 0);
+
+  return found
+    ? {
+      found,
+      start: { line: cursorPos.line, ch: startCh },
+      end: { line: cursorPos.line, ch: cursorPos.ch }
+    }
+    : {
+      found: false,
+      start: { line: 0, ch: 0 },
+      end: { line: 0, ch: 0 }
+    };
+}
