@@ -55,6 +55,12 @@ export default class Core {
     }
     
     if (ptext) {
+      if (this._runningPtext
+          && fileId !== this._runningFileId
+          && ptext.operator === '-') {
+        return;
+      }
+
       if (!this._runningPtext
           || ptext.content !== this._runningPtext.content
           || ptext.syntax !== this._runningPtext.syntax
