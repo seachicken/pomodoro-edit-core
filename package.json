@@ -13,9 +13,6 @@
     "type": "git",
     "url": "git+https://github.com/seachicken/pomodoro-edit-core.git"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "keywords": [
     "pomodoro",
     "timer"
