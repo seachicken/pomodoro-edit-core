@@ -258,6 +258,24 @@ describe('pomodoro-edit-core', () => {
           );
       });
 
+      test('should not cancel the timer when searching in another markdown file has paused PomodoroText', done => {
+        let cancel = jest.fn();
+
+        core.findAndStartTimer('[p1] xxx', 'a.md', {
+          cancel: cancel,
+          finish: () => {
+            expect(cancel).not.toHaveBeenCalled();
+            done();
+          }
+        });
+
+        core.findAndStartTimer('[-p1] xxx', 'b.md', {
+          cancel: () => cancel
+        });
+
+        clock.tickAsync(60 * 1000);
+     });
+
       test('should not cancel the timer when searching in another markdown file has not PomodoroText', done => {
         let cancel = jest.fn();
 
