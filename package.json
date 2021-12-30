@@ -1,6 +1,6 @@
 {
   "name": "@seachicken/pomodoro-edit-core",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Pomodoro timer operated by text",
   "main": "index.js",
   "scripts": {
