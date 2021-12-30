@@ -22,6 +22,7 @@ export default class Core {
             remainingSec,
             durationSec,
             stepNos,
+            symbol: symbol || '',
             content: this._runningPtext.content
           };
           this._bloadcast(JSON.stringify(body));
