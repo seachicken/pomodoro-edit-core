@@ -36,11 +36,20 @@ export function tokenize(syntax) {
         const found = pSyntax.match(P_REGEX);
         if (found) {
           const timeMin = pSyntax.substring(1, found[0].length);
-          tokens.push({
+          i += found[0].length - 1;
+
+          const time = {
             type: tokenType.TIME,
             timeMin: parseInt(timeMin)
-          });
-          i += found[0].length - 1;
+          };
+
+          const symbol = syntax.substring(i + 1).split(/ |\)/)[0];
+          if (symbol) {
+            i += symbol.length;
+            time['symbol'] = symbol;
+          }
+
+          tokens.push(time);
         }
         break;
       }

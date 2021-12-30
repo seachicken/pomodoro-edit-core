@@ -152,7 +152,7 @@ describe('pomodoro-edit-core', () => {
         let expected = 60;
         
         core.findAndStartTimer('[p1] xxx', '', {
-          interval: (remainingSec, durationSec, stepNo, ptext) => {
+          interval: (remainingSec, durationSec, stepNo, symbol, ptext) => {
             expect(remainingSec).toBe(--expected);  // counts 59, 58, ..., 0
             expect(ptext.content).toBe('xxx');
           },

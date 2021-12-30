@@ -12,8 +12,9 @@ export default class Core {
     this._interval;
     this._isPaused;
     this._timerCallbacks = {
-      interval: (remainingSec, durationSec, stepNos) => {
-        this._callbacks.interval && this._callbacks.interval(remainingSec, durationSec, stepNos, this._runningPtext);
+      interval: (remainingSec, durationSec, stepNos, symbol) => {
+        this._callbacks.interval
+          && this._callbacks.interval(remainingSec, durationSec, stepNos, symbol, this._runningPtext);
 
         if (this.runningServer()) {
           const body = {
@@ -110,7 +111,7 @@ export default class Core {
     const lines = text.split('\n');
     let lineNumber = 0;
     for (const line of lines) {
-      const found = line.match(/^ *(?:- |\* |)(?:\[ \] |)\[(-|)([p0-9() ]+)\] *(.+)/);
+      const found = line.match(/^ *(?:- |\* |)(?!\[x\])(?:\[ \] |)\[(-|)(.+)\] *(.+)/);
       if (found) {
         const syntax = found[2];
         if (syntax.trim().length === 0) {
@@ -165,7 +166,7 @@ export default class Core {
 
     if (timer.timeSec) {
       const displayStepNos = this._convertToDisplayStepNos(stepNos);
-      results.push(() => this._createTimer(timer.timeSec, callback, displayStepNos));
+      results.push(() => this._createTimer(timer, callback, displayStepNos));
     }
 
     this._convertToPromises(ast, callback, results, stepNos);
@@ -184,13 +185,13 @@ export default class Core {
     return result;
   }
 
-  _createTimer(timeSec, callbacks, stepNos) {
+  _createTimer(timer, callbacks, stepNos) {
     return new Promise(resolve => {
-      let remainingSec = timeSec;
+      let remainingSec = timer.timeSec;
       this._interval = setInterval(() => {
         if (this._isPaused) return;
 
-        callbacks.interval(--remainingSec, timeSec, stepNos);
+        callbacks.interval(--remainingSec, timer.timeSec, stepNos, timer.symbol);
 
         if (remainingSec <= 0) {
           clearInterval(this._interval);

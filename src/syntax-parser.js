@@ -6,7 +6,7 @@ export function parse(syntax) {
 
 function parseTokens(tokens) {
   const ast = [];
-  while(tokens.length) {
+  while (tokens.length) {
     const token = tokens.shift();
     if (token.type === tokenType.CLOSE_PARENTHESIS) {
       return { ast, token };
@@ -21,7 +21,11 @@ function parseTokens(tokens) {
 }
 
 function toTimeNode(timeToken) {
-  return { timeSec: timeToken.timeMin * 60 };
+  const time = { timeSec: timeToken.timeMin * 60 };
+  if (timeToken.symbol) {
+    time['symbol'] = timeToken.symbol;
+  }
+  return time;
 }
 
 function toLoopNode(childNodes, loopToken) {
