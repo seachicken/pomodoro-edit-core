@@ -211,6 +211,22 @@ describe('pomodoro-edit-core', () => {
       });
     });
 
+    describe('callback step', () => {
+      
+      test('return the next step number and symbol', done => {
+        core.findAndStartTimer('[(p1✍️)2] xxx', '', {
+          step: (stepNos, symbol, ptext) => {
+            expect(stepNos).toBe('2');
+            expect(symbol).toBe('✍️');
+          },
+            
+          finish: () => done()
+        });
+
+        clock.tickAsync(60 * 2000);
+      });
+    });
+
     describe('callback cancel', () => {
 
       test('return false when PomodoroText is not found', done => {
