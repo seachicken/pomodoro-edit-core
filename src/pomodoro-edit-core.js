@@ -28,12 +28,14 @@ export default class Core {
           this._bloadcast(JSON.stringify(body));
         }
       },
-      step: () => {
-        this._callbacks.step && this._callbacks.step(this._runningPtext)
+      step: (stepNos, symbol) => {
+        this._callbacks.step && this._callbacks.step(stepNos, symbol, this._runningPtext)
 
         if (this.runningServer()) {
           const body = {
             type: 'step',
+            stepNos,
+            symbol: symbol || '',
             content: this._runningPtext.content
           };
           this._bloadcast(JSON.stringify(body));
@@ -75,7 +77,7 @@ export default class Core {
         }
 
         callbacks.start && callbacks.start(ptext);
-        this._startTimer(ptext.ast, this._timerCallbacks)
+        this._startTimer(ptext, this._timerCallbacks)
           .then(() => this._finish(ptext, callbacks));
       }
 
@@ -133,19 +135,20 @@ export default class Core {
     return false;
   }
 
-  _startTimer(ast, callbacks) {
+  _startTimer(ptext, callbacks) {
     const results = [];
-    this._convertToPromises(ast, callbacks, results);
+    this._convertToPromises(ptext.ast, callbacks, results);
     return results
       .reduce((p, n, i) => p.then(() => {
+        const next = n();
         if (0 < i && i < results.length) {
-          callbacks.step();
+          callbacks.step(next.stepNos, next.symbol);
         }
-        return n();
+        return next.promise;
       }), Promise.resolve());
   }
 
-  _convertToPromises(ast, callback, results, stepNos = []) {
+  _convertToPromises(ast, callbacks, results, stepNos = []) {
     if (ast.length === 0) {
       return;
     }
@@ -160,17 +163,17 @@ export default class Core {
       }
       for (let i = timer.loop; i > 0; i--) {
         stepNos[stepNos.length - 1] = timer.loop - i + 1;
-        this._convertToPromises(timer.childNodes, callback, results, stepNos);
+        this._convertToPromises(timer.childNodes, callbacks, results, stepNos);
       }
       stepNos.pop();
     }
 
     if (timer.timeSec) {
       const displayStepNos = this._convertToDisplayStepNos(stepNos);
-      results.push(() => this._createTimer(timer, callback, displayStepNos));
+      results.push(() => this._createTimer(timer, callbacks, displayStepNos));
     }
 
-    this._convertToPromises(ast, callback, results, stepNos);
+    this._convertToPromises(ast, callbacks, results, stepNos);
   }
 
   _convertToDisplayStepNos(stepNos) {
@@ -187,20 +190,24 @@ export default class Core {
   }
 
   _createTimer(timer, callbacks, stepNos) {
-    return new Promise(resolve => {
-      let remainingSec = timer.timeSec;
-      this._interval = setInterval(() => {
-        if (this._isPaused) return;
+    return {
+      stepNos,
+      symbol: timer.symbol,
+      promise: new Promise(resolve => {
+        let remainingSec = timer.timeSec;
+        this._interval = setInterval(() => {
+          if (this._isPaused) return;
 
-        callbacks.interval(--remainingSec, timer.timeSec, stepNos, timer.symbol);
+          callbacks.interval(--remainingSec, timer.timeSec, stepNos, timer.symbol);
 
-        if (remainingSec <= 0) {
-          clearInterval(this._interval);
-          this._interval = null;
-          resolve();
-        }
-      }, 1000);
-    });
+          if (remainingSec <= 0) {
+            clearInterval(this._interval);
+            this._interval = null;
+            resolve();
+          }
+        }, 1000);
+      }),
+    };
   }
   
   _clearTimer() {
@@ -223,7 +230,7 @@ export default class Core {
     this._clearTimer();
 
     this._callbacks.start && this._callbacks.start(this._runningPtext);
-    this._startTimer(this._runningPtext.ast, this._timerCallbacks)
+    this._startTimer(this._runningPtext, this._timerCallbacks)
       .then(() => this._finish(this._runningPtext, this._callbacks));
 
     if (this._runningPtext.operator === '-') {
