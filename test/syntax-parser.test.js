@@ -4,16 +4,16 @@ describe('syntax-parser', () => {
 
   test('parse sequential timers', () => {
     expect(parse('p1 p2')).toStrictEqual([
-      { timeSec: 60 },
-      { timeSec: 120 }
+      { seconds: 60 },
+      { seconds: 120 }
     ]);
   });
 
   test('parse loop timers', () => {
     expect(parse('(p1 p2)2')).toStrictEqual([
       { childNodes: [
-          { timeSec: 60 },
-          { timeSec: 120 }
+          { seconds: 60 },
+          { seconds: 120 }
         ], loop: 2
       }
     ]);
@@ -22,11 +22,11 @@ describe('syntax-parser', () => {
   test('parse multiple loop timers', () => {
     expect(parse('(p1)1 (p1)1')).toStrictEqual([
       { childNodes: [
-          { timeSec: 60 }
+          { seconds: 60 }
         ], loop: 1
       },
       { childNodes: [
-          { timeSec: 60 }
+          { seconds: 60 }
         ], loop: 1
       },
     ]);
@@ -35,10 +35,10 @@ describe('syntax-parser', () => {
   test('parse nested loop timers and single timer', () => {
     expect(parse('(p1 (p2 p3)1)2')).toStrictEqual([
       { childNodes: [
-          { timeSec: 60 },
+          { seconds: 60 },
           { childNodes: [
-              { timeSec: 120 },
-              { timeSec: 180 }
+              { seconds: 120 },
+              { seconds: 180 }
             ], loop: 1
           }
         ], loop: 2
@@ -49,7 +49,7 @@ describe('syntax-parser', () => {
   test('parse longest loop timers', () => {
     expect(parse('(p1)')).toStrictEqual([
       { childNodes: [
-          { timeSec: 60 }
+          { seconds: 60 }
         ], loop: 0
       }
     ]);

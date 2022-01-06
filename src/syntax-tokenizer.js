@@ -1,5 +1,5 @@
 const LOOP_REGEX = /\)(?:\d+|)/;
-const TIME_REGEX = /\d+[ms]/;
+const TIME_REGEX = /\d+[hms]/;
 const P_REGEX = /p\d+/;
 
 export const tokenType = {
@@ -36,12 +36,12 @@ export function tokenize(syntax) {
         const pSyntax = getStrBeforeReservedWord(syntax, i);
         const found = pSyntax.match(P_REGEX);
         if (found) {
-          const timeMin = pSyntax.substring(1, found[0].length);
+          const seconds = pSyntax.substring(1, found[0].length);
           i += found[0].length - 1;
 
           const token = {
             type: tokenType.TIME,
-            timeMin: parseInt(timeMin)
+            seconds: parseInt(seconds) * 60
           };
 
           const symbol = getStrBeforeReservedWord(syntax, i + 1);
@@ -64,11 +64,24 @@ export function tokenize(syntax) {
           i += found[0].length - 1;
 
           const time = timeWithUnit.substring(-1);
-          // TODO: seconds
           const unit = timeWithUnit.substring(time.length - 1);
+
+          let ratio;
+          switch (unit) {
+            case 'h':
+              ratio = 60 * 60;
+              break;
+            case 'm':
+              ratio = 60;
+              break;
+            case 's':
+              ratio = 1;
+              break;
+          }
+
           const token = {
             type: tokenType.TIME,
-            timeMin: parseInt(time)
+            seconds: parseInt(time) * ratio
           };
 
           const symbol = getStrBeforeReservedWord(syntax, i + 1);
