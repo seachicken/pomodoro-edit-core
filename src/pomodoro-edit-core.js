@@ -114,7 +114,7 @@ export default class Core {
     const lines = text.split('\n');
     let lineNumber = 0;
     for (const line of lines) {
-      const found = line.match(/^ *(?:- |\* |)(?!\[x\])(?:\[ \] |)\[(-|)(.+)\] *(.+)/);
+      const found = line.match(/^ *(?:- |\* |)(?!\[x\])(?:\[ \] |)\[(-|)(.+?)\] *(.+)/);
       if (found) {
         const syntax = found[2];
         if (syntax.trim().length === 0) {
@@ -168,7 +168,7 @@ export default class Core {
       stepNos.pop();
     }
 
-    if (timer.timeSec) {
+    if (timer.seconds) {
       const displayStepNos = this._convertToDisplayStepNos(stepNos);
       results.push(() => this._createTimer(timer, callbacks, displayStepNos));
     }
@@ -194,11 +194,11 @@ export default class Core {
       stepNos,
       symbol: timer.symbol,
       promise: new Promise(resolve => {
-        let remainingSec = timer.timeSec;
+        let remainingSec = timer.seconds;
         this._interval = setInterval(() => {
           if (this._isPaused) return;
 
-          callbacks.interval(--remainingSec, timer.timeSec, stepNos, timer.symbol);
+          callbacks.interval(--remainingSec, timer.seconds, stepNos, timer.symbol);
 
           if (remainingSec <= 0) {
             clearInterval(this._interval);

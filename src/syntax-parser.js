@@ -21,7 +21,7 @@ function parseTokens(tokens) {
 }
 
 function toTimeNode(timeToken) {
-  const time = { timeSec: timeToken.timeMin * 60 };
+  const time = { seconds: timeToken.seconds };
   if (timeToken.symbol) {
     time['symbol'] = timeToken.symbol;
   }
