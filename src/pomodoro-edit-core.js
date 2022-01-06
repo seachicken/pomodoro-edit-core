@@ -114,7 +114,7 @@ export default class Core {
     const lines = text.split('\n');
     let lineNumber = 0;
     for (const line of lines) {
-      const found = line.match(/^ *(?:- |\* |)(?!\[x\])(?:\[ \] |)\[(-|)(.+)\] *(.+)/);
+      const found = line.match(/^ *(?:- |\* |)(?!\[x\])(?:\[ \] |)\[(-|)(.+?)\] *(.+)/);
       if (found) {
         const syntax = found[2];
         if (syntax.trim().length === 0) {

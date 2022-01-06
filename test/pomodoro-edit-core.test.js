@@ -80,6 +80,33 @@ describe('pomodoro-edit-core', () => {
           }
         });
       });
+
+      test('can find "- [ ] [(p1✍️)1] xxx"', done => {
+        core.findAndStartTimer('- [ ] [(p1✍️)1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+
+      test('can find "- [ ] [(1m✍️)1] xxx"', done => {
+        core.findAndStartTimer('- [ ] [(1m✍️)1] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('xxx');
+            done();
+          }
+        });
+      });
+
+      test('can find "- [ ] [(1m✍️)1] [a] xxx"', done => {
+        core.findAndStartTimer('- [ ] [(1m✍️)1] [a] xxx', '', {
+          start: actual => {
+            expect(actual.content).toBe('[a] xxx');
+            done();
+          }
+        });
+      });
       
       test('ignores when spaces before content', done => {
         core.findAndStartTimer('[p1]  xxx', '', {

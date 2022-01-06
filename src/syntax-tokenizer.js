@@ -1,5 +1,6 @@
-const LOOP_REGEX = /\)(?:[0-9]+|)/;
-const P_REGEX = /p[0-9]+/;
+const LOOP_REGEX = /\)(?:\d+|)/;
+const TIME_REGEX = /\d+[ms]/;
+const P_REGEX = /p\d+/;
 
 export const tokenType = {
   TIME: 1,
@@ -32,32 +33,60 @@ export function tokenize(syntax) {
         break;
       }
       case 'p': {
-        const pSyntax = syntax.substring(i);
+        const pSyntax = getStrBeforeReservedWord(syntax, i);
         const found = pSyntax.match(P_REGEX);
         if (found) {
           const timeMin = pSyntax.substring(1, found[0].length);
           i += found[0].length - 1;
 
-          const time = {
+          const token = {
             type: tokenType.TIME,
             timeMin: parseInt(timeMin)
           };
 
-          const symbol = syntax.substring(i + 1).split(/ |\)/)[0];
+          const symbol = getStrBeforeReservedWord(syntax, i + 1);
           if (symbol) {
             i += symbol.length;
-            time['symbol'] = symbol;
+            token['symbol'] = symbol;
           }
 
-          tokens.push(time);
+          tokens.push(token);
         }
         break;
       }
       case ' ':
         continue;
-      default:
-        return [];
+      default: {
+        const substr = getStrBeforeReservedWord(syntax, i);
+        const found = substr.match(TIME_REGEX);
+        if (found) {
+          const timeWithUnit = substr.substring(0, found[0].length);
+          i += found[0].length - 1;
+
+          const time = timeWithUnit.substring(-1);
+          // TODO: seconds
+          const unit = timeWithUnit.substring(time.length - 1);
+          const token = {
+            type: tokenType.TIME,
+            timeMin: parseInt(time)
+          };
+
+          const symbol = getStrBeforeReservedWord(syntax, i + 1);
+          if (symbol) {
+            i += symbol.length;
+            token['symbol'] = symbol;
+          }
+
+          tokens.push(token);
+        } else {
+          return [];
+        }
+      }
     }
   }
   return tokens;
+}
+
+function getStrBeforeReservedWord(syntax, i) {
+  return syntax.substring(i).split(/ |\)/)[0];
 }
