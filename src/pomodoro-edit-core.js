@@ -118,11 +118,13 @@ export default class Core {
       if (found) {
         const syntax = found[2];
         if (syntax.trim().length === 0) {
+          lineNumber++;
           continue;
         }
         const ast = parse(syntax);
         if (ast.length === 0) {
-          return false;
+          lineNumber++;
+          continue;
         }
         const operator = found[1];
         const content = found[3];

@@ -107,6 +107,18 @@ describe('pomodoro-edit-core', () => {
           }
         });
       });
+
+      test('can find "- [ ] [1m] yyy" from multiple lines', done => {
+        core.findAndStartTimer(
+          '- [ ] [a] xxx\n' +
+          '  - [ ] [1m] yyy',
+          '', {
+          start: actual => {
+            expect(actual.content).toBe('yyy');
+            done();
+          }
+        });
+      });
       
       test('ignores when spaces before content', done => {
         core.findAndStartTimer('[p1]  xxx', '', {
