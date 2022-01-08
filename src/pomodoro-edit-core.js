@@ -117,10 +117,6 @@ export default class Core {
       const found = line.match(/^ *(?:- |\* |)(?!\[x\])(?:\[ \] |)\[(-|)(.+?)\] *(.+)/);
       if (found) {
         const syntax = found[2];
-        if (syntax.trim().length === 0) {
-          lineNumber++;
-          continue;
-        }
         const ast = parse(syntax);
         if (ast.length === 0) {
           lineNumber++;
