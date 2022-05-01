@@ -1,7 +1,7 @@
 {
   "name": "@seachicken/pomodoro-edit-core",
   "version": "0.7.1",
-  "description": "Pomodoro timer operated by text",
+  "description": "DSL for text-based Pomodoro Timer",
   "main": "index.js",
   "scripts": {
     "build": "babel src --out-dir lib",
